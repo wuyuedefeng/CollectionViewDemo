@@ -10,6 +10,12 @@
 
 @interface ITDBannerViewController ()<UICollectionViewDelegate,UICollectionViewDataSource>
 
+//@property(nonatomic, strong) UICollectionView *collecitonView;
+@property (nonatomic, strong) UIPageControl *pageControl;
+
+@property (nonatomic, assign) NSInteger bannerWidth;
+
+@property (nonatomic, strong) NSArray *imageUrlStrArray;
 
 @end
 
@@ -18,13 +24,26 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     // Do any additional setup after loading the view.
+    _imageUrlStrArray = @[@"1",@"2",@"3",@"4",@"5"];
+    
     self.view.backgroundColor = [UIColor whiteColor];
+    
+    UIScrollView *scrollView = [[UIScrollView alloc] initWithFrame:self.view.bounds];
+    [self.view addSubview:scrollView];
+    
+    UIView *collectionViewContainer = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width, 150)];
+    _bannerWidth = collectionViewContainer.frame.size.width;
+    [scrollView addSubview:collectionViewContainer];
     
     UICollectionViewFlowLayout * flowLayout =[[UICollectionViewFlowLayout alloc] init];
     [flowLayout setScrollDirection:UICollectionViewScrollDirectionHorizontal];
     
-    UICollectionView *collectionView = [[UICollectionView alloc] initWithFrame:CGRectMake(0, 0, self.view.bounds.size.width, 70 + 64) collectionViewLayout:flowLayout];
-    collectionView.backgroundColor = [UIColor lightGrayColor];
+    UICollectionView *collectionView = [[UICollectionView alloc] initWithFrame:collectionViewContainer.bounds collectionViewLayout:flowLayout];
+    [collectionViewContainer addSubview:collectionView];
+    
+    [collectionView setShowsHorizontalScrollIndicator:NO];
+    
+    collectionView.backgroundColor = [UIColor redColor];
     
     collectionView.pagingEnabled = YES;
     
@@ -32,12 +51,30 @@
     //注册单元格
     [collectionView registerClass:[UICollectionViewCell class] forCellWithReuseIdentifier:identify];
     
-    //    collectionView.contentInset = UIEdgeInsetsMake(0, 0, 0, 0);
-    
     collectionView.delegate = self;
     collectionView.dataSource = self;
     
-    [self.view addSubview:collectionView];
+    if (_imageUrlStrArray.count > 0){
+        collectionView.contentOffset = CGPointMake(CGRectGetWidth(collectionView.frame), 0);
+    }
+    
+
+    
+    [scrollView addSubview:collectionViewContainer];
+    
+    [self setPageControlInView:collectionViewContainer];
+}
+
+- (void)setPageControlInView:(UIView *)view
+{
+    int pagesCount =5;
+    UIPageControl *pageControl = [[UIPageControl alloc] init];
+    _pageControl = pageControl;
+    pageControl.center = CGPointMake(view.frame.size.width/2, view.frame.size.height-15); // 设置pageControl的位置
+    pageControl.numberOfPages = pagesCount;
+    pageControl.currentPage = 0;
+    
+    [view addSubview:pageControl];
 }
 
 #pragma mark -- UICollectionViewDataSource
@@ -58,7 +95,7 @@
     static NSString * CellIdentifier = @"collectionCell";
     UICollectionViewCell * cell = [collectionView dequeueReusableCellWithReuseIdentifier:CellIdentifier forIndexPath:indexPath];
     
-    cell.backgroundColor = [UIColor colorWithRed:((10 * indexPath.row) / 255.0) green:((20 * indexPath.row)/255.0) blue:((30 * indexPath.row)/255.0) alpha:1.0f];
+    cell.backgroundColor = [UIColor colorWithRed:((2 * indexPath.row) / 255.0) green:( 1 - (20 * indexPath.row)/255.0) blue:(1 - (30 * indexPath.row)/255.0) alpha:1.0f];
     return cell;
 }
 
@@ -66,7 +103,7 @@
 //定义每个UICollectionView 的大小
 - (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout*)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath
 {
-    return CGSizeMake(collectionView.bounds.size.width , 70);
+    return CGSizeMake(collectionView.bounds.size.width , 150);
 }
 
 //定义每个UICollectionView 的 margin
@@ -88,5 +125,11 @@
 //- (UIEdgeInsets)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout*)collectionViewLayout insetForSectionAtIndex:(NSInteger)section {
 //    return UIEdgeInsetsMake(0, 0, 0, 0);
 //}
+
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView{
+    int num = (scrollView.contentOffset.x + _bannerWidth / 2.0)  / _bannerWidth ;
+    _pageControl.currentPage = num;
+    NSLog(@"%d",num);
+}
 
 @end
